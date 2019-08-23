@@ -6,9 +6,10 @@ package settings
 import (
 	"database/sql"
 	"errors"
-	"github.com/winjeg/go-commons/log"
 	"strings"
 	"sync"
+
+	"github.com/winjeg/go-commons/log"
 )
 
 const (
@@ -17,8 +18,8 @@ const (
 	existSql               = "SELECT COUNT(*) FROM settings WHERE name= ?"
 	addSql                 = "INSERT IGNORE INTO settings(name, value) VALUE(?, ?)"
 	deleteVarSql           = "DELETE FROM settings WHERE name = ?"
-	settingsSql            = `show tables LIKE 'settings'`
-	settingsTable          = "settings"
+	settingsSql            = `SELECT 1 FROM settings`
+	settingVar             = "1"
 	createSettingsTableSql = "CREATE TABLE `settings` ( `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'pk', `name` varchar(200) COLLATE utf8_bin NOT NULL COMMENT 'varname', `value` text COLLATE utf8_bin NOT NULL, PRIMARY KEY (`id`), UNIQUE KEY `name_UNIQUE` (`name`), KEY `idx_name` (`name`)) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_bin"
 	descSettingsSql        = "SELECT * FROM settings LIMIT 1"
 	nameCol                = "name"
@@ -64,9 +65,9 @@ func Init(dbConn *sql.DB) error {
 
 func tableExists(dbConn *sql.DB) bool {
 	row := dbConn.QueryRow(settingsSql)
-	var tableName string
-	err := row.Scan(&tableName)
-	return err == nil && strings.EqualFold(tableName, settingsTable)
+	var re string
+	err := row.Scan(&re)
+	return err == nil && strings.EqualFold(re, settingVar)
 }
 
 func GetVar(name string) string {

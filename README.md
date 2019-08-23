@@ -3,7 +3,8 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/winjeg/settings)](https://goreportcard.com/report/github.com/winjeg/settings)
 [![codecov](https://codecov.io/gh/winjeg/settings/branch/master/graph/badge.svg)](https://codecov.io/gh/winjeg/settings)
 
-a simple tool to manage settings for an go app with mysql database
+a simple tool to manage settings for an go app with `mysql` database  
+if you want to use it in `postgres` you should create a settings table with the same structure
 
 ## about settings
 settings is a simple go library for users to
