@@ -21,9 +21,9 @@ const (
 	existSql       = "SELECT COUNT(*) FROM settings WHERE name= ?"
 	existSqlPg     = "SELECT COUNT(*) FROM settings WHERE name= $1"
 	addSql         = "INSERT IGNORE INTO settings(name, value) VALUE(?, ?)"
-	addSqlPg       = "INSERT IGNORE INTO settings(name, value) VALUES($1, $2)"
+	addSqlPg       = "INSERT INTO settings(name, value) VALUES($1, $2)"
 	addSqlWithId   = "INSERT IGNORE INTO settings(id, name, value) VALUE(?, ?, ?)"
-	addSqlWithIdPg = "INSERT IGNORE INTO settings(id, name, value) VALUES($1, $2, $3)"
+	addSqlWithIdPg = "INSERT INTO settings(id, name, value) VALUES($1, $2, $3)"
 	deleteVarSql   = "DELETE FROM settings WHERE name = ?"
 	deleteVarSqlPg = "DELETE FROM settings WHERE name = $1"
 
@@ -47,13 +47,14 @@ var (
 // if using databases that won't automatically generated primary key
 // this function may suit you, but you must make the primary key at lease 8 byte long
 
-func InitV2(dbConn *sql.DB, autoGenerateId, pg bool) {
+func InitV2(dbConn *sql.DB, autoGenerateId, pg bool) error {
 	err := Init(dbConn)
 	if err != nil {
-		return
+		return err
 	}
 	withId = autoGenerateId
 	postgres = pg
+	return nil
 }
 
 func Init(dbConn *sql.DB) error {
