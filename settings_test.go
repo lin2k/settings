@@ -63,7 +63,3 @@ func checkErr(err error) {
 		panic(err)
 	}
 }
-
-func TestGenerateId(t *testing.T) {
-	assert.NotEqual(t, generateId(), generateId(), generateId())
-}

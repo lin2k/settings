@@ -6,11 +6,10 @@ package settings
 import (
 	"database/sql"
 	"errors"
+	"github.com/winjeg/go-commons/uid"
 	"strings"
 	"sync"
-	"time"
 
-	"github.com/sony/sonyflake"
 	"github.com/winjeg/go-commons/log"
 )
 
@@ -115,7 +114,7 @@ func SetVar(name, value string) {
 	if err := row.Scan(&exists); err == nil && exists == 0 {
 		var err error
 		if withId {
-			id := generateId()
+			id := uid.NextID()
 			_, err = db.Exec(addSqlWithId, id, name, value)
 		} else {
 			_, err = db.Exec(addSql, name, value)
@@ -167,24 +166,4 @@ func contains(collection []string, elements ...string) bool {
 		}
 	}
 	return count >= len(elementMap)
-}
-
-// below is the way to generate id for
-
-var (
-	timeStart, _  = time.Parse("2006-01-02 15:04:05", "2019-07-01 12:00:00")
-	snowFlakeInst = sonyflake.NewSonyflake(sonyflake.Settings{
-		StartTime:      timeStart, // start time
-		MachineID:      nil,       // can be replaced, default is private ip address
-		CheckMachineID: nil,       // the method to make sure the machine id is unique
-	})
-)
-
-func generateId() uint64 {
-	id, err := snowFlakeInst.NextID()
-	if err != nil {
-		logger.Error(err)
-		return 0
-	}
-	return id
 }
