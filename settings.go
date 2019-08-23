@@ -92,6 +92,9 @@ func tableExists(dbConn *sql.DB) bool {
 	row := dbConn.QueryRow(settingsSql)
 	var re string
 	err := row.Scan(&re)
+	if err != nil && strings.EqualFold(err.Error(), "sql: no rows in result set") {
+		return true
+	}
 	return err == nil && strings.EqualFold(re, settingVar)
 }
 
