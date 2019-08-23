@@ -8,7 +8,9 @@ import (
 	"errors"
 	"strings"
 	"sync"
+	"time"
 
+	"github.com/sony/sonyflake"
 	"github.com/winjeg/go-commons/log"
 )
 
@@ -17,6 +19,7 @@ const (
 	updateSql              = "UPDATE settings SET value = ? WHERE name = ?"
 	existSql               = "SELECT COUNT(*) FROM settings WHERE name= ?"
 	addSql                 = "INSERT IGNORE INTO settings(name, value) VALUE(?, ?)"
+	addSqlWithId           = "INSERT IGNORE INTO settings(id, name, value) VALUE(?, ?, ?)"
 	deleteVarSql           = "DELETE FROM settings WHERE name = ?"
 	settingsSql            = `SELECT 1 FROM settings`
 	settingVar             = "1"
@@ -28,9 +31,22 @@ const (
 
 var (
 	settingsMap         = map[string]string{}
-	db          *sql.DB = nil
 	logger              = log.GetLogger(nil)
+	db          *sql.DB = nil
+	withId              = false
 )
+
+// generate primary key, with this function
+// if using databases that won't automatically generated primary key
+// this function may suit you, but you must make the primary key at lease 8 byte long
+
+func InitV2(dbConn *sql.DB, autoGenerateId bool) {
+	err := Init(dbConn)
+	if err != nil {
+		return
+	}
+	withId = autoGenerateId
+}
 
 func Init(dbConn *sql.DB) error {
 	if dbConn == nil {
@@ -97,7 +113,13 @@ func SetVar(name, value string) {
 	row := db.QueryRow(existSql, name)
 	var exists int
 	if err := row.Scan(&exists); err == nil && exists == 0 {
-		_, err = db.Exec(addSql, name, value)
+		var err error
+		if withId {
+			id := generateId()
+			_, err = db.Exec(addSqlWithId, id, name, value)
+		} else {
+			_, err = db.Exec(addSql, name, value)
+		}
 		if err != nil {
 			logger.Error(err)
 		}
@@ -145,4 +167,24 @@ func contains(collection []string, elements ...string) bool {
 		}
 	}
 	return count >= len(elementMap)
+}
+
+// below is the way to generate id for
+
+var (
+	timeStart, _  = time.Parse("2006-01-02 15:04:05", "2019-07-01 12:00:00")
+	snowFlakeInst = sonyflake.NewSonyflake(sonyflake.Settings{
+		StartTime:      timeStart, // start time
+		MachineID:      nil,       // can be replaced, default is private ip address
+		CheckMachineID: nil,       // the method to make sure the machine id is unique
+	})
+)
+
+func generateId() uint64 {
+	id, err := snowFlakeInst.NextID()
+	if err != nil {
+		logger.Error(err)
+		return 0
+	}
+	return id
 }
